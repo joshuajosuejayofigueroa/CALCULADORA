@@ -1,5 +1,7 @@
 #include "calculadora.h"
-
+#include <stdexcept>
+#include <cctype>
+#include <cmath> 
 
 double potencia(double base, int exponente) {
     if (exponente == 0) return 1.0;
@@ -8,6 +10,9 @@ double potencia(double base, int exponente) {
 }
 
 int factorial(int n) {
+    if (n < 0) {
+        throw runtime_error("El factorial no esta definido para numeros negativos");
+    }
     if (n <= 1) return 1;
     return n * factorial(n - 1);
 }
@@ -192,4 +197,137 @@ void operacionesBasicas(double& Ans) {
     } else {
         cout << "Opcion no valida.\n";
     }
+}
+
+static void saltarEspacios(const string &texto, size_t &posicion) {
+    while (posicion < texto.size() && isspace(static_cast<unsigned char>(texto[posicion]))) {
+        posicion++;
+    }
+}
+
+static double leerExpresion(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2);
+static double leerTermino(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2);
+static double leerFactor(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2);
+static double leerUnario(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2);
+static double leerPostfijo(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2);
+static double leerPrimario(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2);
+
+static double leerPrimario(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2) {
+    saltarEspacios(texto, posicion);
+    if (posicion >= texto.size()) {
+        throw runtime_error("La expresion termino antes de tiempo (falta un numero o parentesis)");
+    }
+
+if (texto.compare(posicion, 3, "Ans") == 0) { posicion += 3; return Ans; }
+    if (texto.compare(posicion, 2, "M1") == 0)  { posicion += 2; return M1; }
+    if (texto.compare(posicion, 2, "M2") == 0)  { posicion += 2; return M2; }
+
+if (texto[posicion] == '(') {
+        posicion++;
+        double valor = leerExpresion(texto, posicion, Ans, M1, M2);
+        saltarEspacios(texto, posicion);
+        if (posicion >= texto.size() || texto[posicion] != ')') {
+            throw runtime_error("Falta cerrar un parentesis ')'");
+        }
+        posicion++;
+        return valor;
+    }
+
+ if (isdigit(static_cast<unsigned char>(texto[posicion])) || texto[posicion] == '.') {
+        size_t inicio = posicion;
+        while (posicion < texto.size() &&
+               (isdigit(static_cast<unsigned char>(texto[posicion])) || texto[posicion] == '.')) {
+            posicion++;
+        }
+        return stod(texto.substr(inicio, posicion - inicio));
+    }
+
+    throw runtime_error(string("Caracter no reconocido en la expresion: '") + texto[posicion] + "'");
+}
+
+static double leerPostfijo(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2) {
+    double valor = leerPrimario(texto, posicion, Ans, M1, M2);
+    saltarEspacios(texto, posicion);
+    while (posicion < texto.size() && texto[posicion] == '!') {
+        posicion++;
+        if (valor < 0 || floor(valor) != valor) {
+            throw runtime_error("El factorial solo se puede aplicar a enteros no negativos");
+        }
+        valor = factorial(static_cast<int>(valor)); // reutiliza TU funcion factorial (ya validada)
+        saltarEspacios(texto, posicion);
+    }
+    return valor;
+}
+
+static double leerUnario(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2) {
+    saltarEspacios(texto, posicion);
+    if (posicion < texto.size() && texto[posicion] == '-') {
+        posicion++;
+        return -leerUnario(texto, posicion, Ans, M1, M2);
+    }
+    if (posicion < texto.size() && texto[posicion] == '+') {
+        posicion++;
+        return leerUnario(texto, posicion, Ans, M1, M2);
+    }
+    return leerPostfijo(texto, posicion, Ans, M1, M2);
+}
+
+static double leerFactor(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2) {
+    double base = leerUnario(texto, posicion, Ans, M1, M2);
+    saltarEspacios(texto, posicion);
+    if (posicion < texto.size() && texto[posicion] == '^') {
+        posicion++;
+        double exponente = leerFactor(texto, posicion, Ans, M1, M2); // recursion a la derecha
+        if (floor(exponente) != exponente) {
+            throw runtime_error("Esta version de potencia solo admite exponentes enteros");
+        }
+        return potencia(base, static_cast<int>(exponente));
+    }
+    return base;
+}
+
+static double leerTermino(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2) {
+    double resultado = leerFactor(texto, posicion, Ans, M1, M2);
+    saltarEspacios(texto, posicion);
+    while (posicion < texto.size() &&
+           (texto[posicion] == '*' || texto[posicion] == '/' || texto[posicion] == '%')) {
+        char operador = texto[posicion];
+        posicion++;
+        double derecho = leerFactor(texto, posicion, Ans, M1, M2);
+        if (operador == '*') {
+            resultado *= derecho;
+        } else if (operador == '/') {
+            if (derecho == 0) throw runtime_error("No se puede dividir entre cero");
+            resultado /= derecho;
+        } else { // '%'
+            if (derecho == 0) throw runtime_error("No se puede calcular el modulo entre cero");
+            int parteEntera = static_cast<int>(resultado / derecho);
+            resultado = resultado - parteEntera * derecho;
+        }
+        saltarEspacios(texto, posicion);
+    }
+    return resultado;
+}
+
+static double leerExpresion(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2) {
+    double resultado = leerTermino(texto, posicion, Ans, M1, M2);
+    saltarEspacios(texto, posicion);
+    while (posicion < texto.size() && (texto[posicion] == '+' || texto[posicion] == '-')) {
+        char operador = texto[posicion];
+        posicion++;
+        double derecho = leerTermino(texto, posicion, Ans, M1, M2);
+        resultado = (operador == '+') ? resultado + derecho : resultado - derecho;
+        saltarEspacios(texto, posicion);
+    }
+    return resultado;
+}
+
+double evaluarExpresion(const string &texto, double &Ans, double &M1, double &M2) {
+    size_t posicion = 0;
+    double resultado = leerExpresion(texto, posicion, Ans, M1, M2);
+    saltarEspacios(texto, posicion);
+    if (posicion != texto.size()) {
+        throw runtime_error("Sobraron caracteres al final (revisa los parentesis)");
+    }
+    return resultado;
 }
