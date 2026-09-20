@@ -1,56 +1,152 @@
 #include "calculadora.h"
 #include <iostream>
-#include <cstddef>
 
 using namespace std;
 #define PI 3.14159265358979323846
 
-// OPERACIONES BASICAS
+// =======================================================
+// EVALUADOR DE EXPRESIONES ARITMETICAS (OPERACIONES BASICAS)
+// =======================================================
 
-void operacionesBasicas(double& Ans) {
-    int opcion = 0;
-    cout << "\n--- OPERACIONES BASICAS ---\n";
-    cout << "1. Suma (+)\n";
-    cout << "2. Resta (-)\n";
-    cout << "3. Multiplicacion (*)\n";
-    cout << "4. Division (/)\n";
-    cout << "5. Modulo (%)\n";
-    cout << "Ingrese opcion: ";
-    cin >> opcion;
+// Declaraciones previas de las funciones para que la recursion funcione sin problemas
+double evaluarExpresion(char texto[], int& posicion);
+double evaluarTermino(char texto[], int& posicion);
+double evaluarFactor(char texto[], int& posicion);
 
-    if (opcion >= 1 && opcion <= 4) {
-        double a, b;
-        cout << "Ingrese el primer numero: "; cin >> a;
-        cout << "Ingrese el segundo numero: "; cin >> b;
-
-        if (opcion == 1) Ans = a + b;
-        else if (opcion == 2) Ans = a - b;
-        else if (opcion == 3) Ans = a * b;
-        else if (opcion == 4) {
-            if (b != 0) Ans = a / b;
-            else {
-                cout << "Error: Division por cero.\n";
-                return;
-            }
-        }
-        cout << "Resultado: " << Ans << endl;
-
-    } else if (opcion == 5) {
-        int a, b;
-        cout << "Ingrese el primer numero entero: "; cin >> a;
-        cout << "Ingrese el segundo numero entero: "; cin >> b;
-        if (b != 0) {
-            Ans = a % b;
-            cout << "Resultado: " << Ans << endl;
-        } else {
-            cout << "Error: Division por cero.\n";
-        }
-    } else {
-        cout << "Opcion no valida.\n";
+// Ignora los espacios en blanco ingresados por el usuario
+void omitirEspacios(char texto[], int& posicion) {
+    while (texto[posicion] == ' ') {
+        posicion++;
     }
 }
 
+// Nivel 3: Numeros, Parentesis (), Potencias (^) y Factoriales (!)
+double evaluarFactor(char texto[], int& posicion) {
+    omitirEspacios(texto, posicion);
+    double resultado = 0.0;
+
+    // Si encontramos un parentesis de apertura
+    if (texto[posicion] == '(') {
+        posicion++; // Avanzar despues del '('
+        resultado = evaluarExpresion(texto, posicion); // Evaluar lo que esta adentro
+        omitirEspacios(texto, posicion);
+        if (texto[posicion] == ')') {
+            posicion++; // Avanzar despues del ')'
+        }
+    } 
+    // Si encontramos un numero
+    else {
+        double valorEntero = 0.0;
+        while (texto[posicion] >= '0' && texto[posicion] <= '9') {
+            valorEntero = valorEntero * 10.0 + (texto[posicion] - '0');
+            posicion++;
+        }
+        resultado = valorEntero;
+
+        // Si el numero tiene punto decimal
+        if (texto[posicion] == '.') {
+            posicion++;
+            double factorDecimal = 0.1;
+            while (texto[posicion] >= '0' && texto[posicion] <= '9') {
+                resultado = resultado + (texto[posicion] - '0') * factorDecimal;
+                factorDecimal = factorDecimal / 10.0;
+                posicion++;
+            }
+        }
+    }
+
+    omitirEspacios(texto, posicion);
+
+    // Operador Potencia ^
+    if (texto[posicion] == '^') {
+        posicion++;
+        double exponente = evaluarFactor(texto, posicion);
+        resultado = potencia(resultado, (int)exponente);
+    }
+
+    // Operador Factorial !
+    if (texto[posicion] == '!') {
+        posicion++;
+        if (resultado < 0) {
+            cout << "Error: Factorial de un numero negativo no existe.\n";
+            return 0.0;
+        }
+        resultado = factorial((int)resultado);
+    }
+
+    return resultado;
+}
+
+// Nivel 2: Multiplicacion (*), Division (/) y Modulo (%)
+double evaluarTermino(char texto[], int& posicion) {
+    double valorIzquierda = evaluarFactor(texto, posicion);
+    omitirEspacios(texto, posicion);
+
+    while (texto[posicion] == '*' || texto[posicion] == '/' || texto[posicion] == '%') {
+        char operador = texto[posicion];
+        posicion++;
+
+        double valorDerecha = evaluarFactor(texto, posicion);
+
+        if (operador == '*') {
+            valorIzquierda = valorIzquierda * valorDerecha;
+        } else if (operador == '/') {
+            if (valorDerecha == 0) {
+                cout << "Error: Division por cero no permitida.\n";
+                return 0.0;
+            }
+            valorIzquierda = valorIzquierda / valorDerecha;
+        } else if (operador == '%') {
+            if ((int)valorDerecha == 0) {
+                cout << "Error: Modulo por cero no permitido.\n";
+                return 0.0;
+            }
+            valorIzquierda = (int)valorIzquierda % (int)valorDerecha;
+        }
+        omitirEspacios(texto, posicion);
+    }
+    return valorIzquierda;
+}
+
+// Nivel 1: Suma (+) y Resta (-)
+double evaluarExpresion(char texto[], int& posicion) {
+    double valorIzquierda = evaluarTermino(texto, posicion);
+    omitirEspacios(texto, posicion);
+
+    while (texto[posicion] == '+' || texto[posicion] == '-') {
+        char operador = texto[posicion];
+        posicion++;
+
+        double valorDerecha = evaluarTermino(texto, posicion);
+
+        if (operador == '+') {
+            valorIzquierda = valorIzquierda + valorDerecha;
+        } else if (operador == '-') {
+            valorIzquierda = valorIzquierda - valorDerecha;
+        }
+        omitirEspacios(texto, posicion);
+    }
+    return valorIzquierda;
+}
+
+// Funcion principal de Operaciones Basicas / Evaluador de Expresiones
+void operacionesBasicas(double& Ans) {
+    char expresion[100];
+    cout << "\n--- EVALUADOR DE EXPRESIONES ARITMETICAS ---\n";
+    cout << "Ingrese la expresion (ejemplo: (3+5)*2^3!): ";
+    
+    cin.ignore();
+    cin.getline(expresion, 100);
+
+    int posicionInicio = 0;
+    Ans = evaluarExpresion(expresion, posicionInicio);
+    cout << "Resultado: " << Ans << endl;
+}
+
+
+// ==========================================
 // MODULO CIENTIFICO (SERIES DE TAYLOR)
+// ==========================================
 
 double potencia(double base, int exponente) {
     if (exponente == 0) return 1.0;
@@ -123,7 +219,10 @@ double logaritmo(double x, int grado) {
     return logaritmoTaylor(y, grado);
 }
 
+
+// ==========================================
 // MODULO DE MATRICES Y ALGEBRA LINEAL
+// ==========================================
 
 double** crearMatriz(int filas, int columnas) {
     double** matriz = new double*[filas];
@@ -254,7 +353,6 @@ void resolverGaussJordan() {
     }
 
     for (int i = 0; i < n; i++) {
-        // Intercambio simple de filas si el pivote es 0
         if (A[i][i] == 0) {
             for (int k = i + 1; k < n; k++) {
                 if (A[k][i] != 0) {
@@ -294,3 +392,4 @@ void resolverGaussJordan() {
         cout << "x" << i + 1 << " = " << A[i][n] << endl;
     }
     liberarMatriz(A, n);
+}
