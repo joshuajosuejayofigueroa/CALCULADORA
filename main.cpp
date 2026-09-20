@@ -33,37 +33,50 @@ int main() {
             cin >> opCientifica;
 
             if (opCientifica == 1) {
-                double base; 
+                double base;
                 int exponente;
                 cout << "Ingrese la base: "; cin >> base;
                 cout << "Ingrese el exponente: "; cin >> exponente;
                 Ans = potencia(base, exponente);
                 cout << "Resultado: " << Ans << endl;
+
             } else if (opCientifica == 2) {
                 int numero;
                 cout << "Ingrese un numero entero: "; cin >> numero;
                 Ans = factorial(numero);
                 cout << "Resultado: " << Ans << endl;
+
             } else if (opCientifica == 3) {
                 double angulo;
-                cout << "Ingrese el angulo en radianes: "; cin >> angulo;
-                Ans = seno(angulo);
-                cout << "Resultado: " << Ans << endl;
+                int n;
+                cout << "Ingrese el angulo en grados: "; cin >> angulo;
+                cout << "Ingrese el grado del polinomio de Taylor (N): "; cin >> n;
+                Ans = seno(angulo, n);
+                cout << "Resultado sin(" << angulo << "deg): " << Ans << endl;
+
             } else if (opCientifica == 4) {
                 double angulo;
-                cout << "Ingrese el angulo en radianes: "; cin >> angulo;
-                Ans = coseno(angulo);
-                cout << "Resultado: " << Ans << endl;
+                int n;
+                cout << "Ingrese el angulo en grados: "; cin >> angulo;
+                cout << "Ingrese el grado del polinomio de Taylor (N): "; cin >> n;
+                Ans = coseno(angulo, n);
+                cout << "Resultado cos(" << angulo << "deg): " << Ans << endl;
+
             } else if (opCientifica == 5) {
-                double valor;
-                cout << "Ingrese el valor de x: "; cin >> valor;
-                Ans = exponencial(valor);
-                cout << "Resultado: " << Ans << endl;
+                double x;
+                int n;
+                cout << "Ingrese el exponente (x): "; cin >> x;
+                cout << "Ingrese el grado del polinomio de Taylor (N): "; cin >> n;
+                Ans = exponencial(x, n);
+                cout << "Resultado e^" << x << ": " << Ans << endl;
+
             } else if (opCientifica == 6) {
-                double valor;
-                cout << "Ingrese el valor de x (|x| < 1): "; cin >> valor;
-                Ans = logaritmo(valor);
-                cout << "Resultado: " << Ans << endl;
+                double x;
+                int n;
+                cout << "Ingrese el valor x (ej. 1.5): "; cin >> x;
+                cout << "Ingrese el grado del polinomio de Taylor (N): "; cin >> n;
+                Ans = logaritmo(x, n);
+                cout << "Resultado ln(" << x << "): " << Ans << endl;
             }
 
         } else if (opcionPrincipal == 3) {
