@@ -1,4 +1,11 @@
 #include "calculadora.h"
+#include <iostream>
+#include <cstddef>
+
+using namespace std;
+#define PI 3.14159265358979323846
+
+// OPERACIONES BASICAS
 
 void operacionesBasicas(double& Ans) {
     int opcion = 0;
@@ -43,42 +50,80 @@ void operacionesBasicas(double& Ans) {
     }
 }
 
+// MODULO CIENTIFICO (SERIES DE TAYLOR)
+
 double potencia(double base, int exponente) {
     if (exponente == 0) return 1.0;
     if (exponente < 0) return 1.0 / potencia(base, -exponente);
     return base * potencia(base, exponente - 1);
 }
 
-int factorial(int n) {
-    if (n <= 1) return 1;
-    return n * factorial(n - 1);
+double factorial(int n) {
+    if (n < 0) return 0;
+    if (n == 0 || n == 1) return 1.0;
+    return (double)n * factorial(n - 1);
 }
 
-double seno(double x, int n) {
+double senoTaylor(double x, int n) {
     if (n == 0) return x;
     double signo = (n % 2 == 0) ? 1.0 : -1.0;
     double termino = signo * potencia(x, 2 * n + 1) / factorial(2 * n + 1);
-    return termino + seno(x, n - 1);
+    return termino + senoTaylor(x, n - 1);
 }
 
-double coseno(double x, int n) {
+double seno(double grados, int n) {
+    double rad = grados * (PI / 180.0);
+    return senoTaylor(rad, n);
+}
+
+double cosenoTaylor(double x, int n) {
     if (n == 0) return 1.0;
     double signo = (n % 2 == 0) ? 1.0 : -1.0;
     double termino = signo * potencia(x, 2 * n) / factorial(2 * n);
-    return termino + coseno(x, n - 1);
+    return termino + cosenoTaylor(x, n - 1);
 }
 
-double exponencial(double x, int n) {
+double coseno(double grados, int n) {
+    double rad = grados * (PI / 180.0);
+    return cosenoTaylor(rad, n);
+}
+
+double exponencialTaylor(double x, int n) {
     if (n == 0) return 1.0;
-    return (potencia(x, n) / factorial(n)) + exponencial(x, n - 1);
+    return (potencia(x, n) / factorial(n)) + exponencialTaylor(x, n - 1);
 }
 
-double logaritmo(double x, int n) {
-    if (n == 1) return x;
-    double signo = (n % 2 == 0) ? -1.0 : 1.0;
-    double termino = signo * potencia(x, n) / n;
-    return termino + logaritmo(x, n - 1);
+double exponencial(double x, int grado) {
+    if (grado < 0) {
+        cout << "Error: El grado del polinomio no puede ser negativo.\n";
+        return 0.0;
+    }
+    return exponencialTaylor(x, grado);
 }
+
+double logaritmoTaylor(double y, int n) {
+    if (n == 1) return y;
+    double signo = (n % 2 == 0) ? -1.0 : 1.0;
+    double termino = signo * potencia(y, n) / n;
+    return termino + logaritmoTaylor(y, n - 1);
+}
+
+double logaritmo(double x, int grado) {
+    if (x <= 0) {
+        cout << "Error: El logaritmo solo esta definido para x > 0.\n";
+        return 0.0;
+    }
+
+    if (grado <= 0) {
+        cout << "Error: El grado del polinomio debe ser mayor a 0.\n";
+        return 0.0;
+    }
+
+    double y = x - 1.0;
+    return logaritmoTaylor(y, grado);
+}
+
+// MODULO DE MATRICES Y ALGEBRA LINEAL
 
 double** crearMatriz(int filas, int columnas) {
     double** matriz = new double*[filas];
@@ -209,6 +254,20 @@ void resolverGaussJordan() {
     }
 
     for (int i = 0; i < n; i++) {
+        // Intercambio simple de filas si el pivote es 0
+        if (A[i][i] == 0) {
+            for (int k = i + 1; k < n; k++) {
+                if (A[k][i] != 0) {
+                    for (int j = 0; j <= n; j++) {
+                        double temp = A[i][j];
+                        A[i][j] = A[k][j];
+                        A[k][j] = temp;
+                    }
+                    break;
+                }
+            }
+        }
+
         double pivote = A[i][i];
         if (pivote == 0) {
             cout << "\nEl sistema no tiene solucion unica.\n";
@@ -234,6 +293,4 @@ void resolverGaussJordan() {
     for (int i = 0; i < n; i++) {
         cout << "x" << i + 1 << " = " << A[i][n] << endl;
     }
-
     liberarMatriz(A, n);
-}
