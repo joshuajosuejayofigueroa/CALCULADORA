@@ -17,54 +17,43 @@ int main() {
         cout << "Ingrese una opcion: ";
         cin >> opcionPrincipal;
 
-        if (opcionPrincipal == 1) {
-            operacionesBasicas(Ans);
-
-        } else if (opcionPrincipal == 2) {
-            int opCientifica = 0;
-            cout << "\n--- MODULO CIENTIFICO ---\n";
-            cout << "1. Potencia\n";
-            cout << "2. Factorial\n";
-            cout << "3. Seno\n";
-            cout << "4. Coseno\n";
-            cout << "5. Exponencial (e^x)\n";
-            cout << "6. Logaritmo Natural (ln)\n";
-            cout << "Ingrese opcion: ";
-            cin >> opCientifica;
-
+        try {
             if (opCientifica == 1) {
-                double base;
-                int exponente;
-                cout << "Ingrese la base: "; cin >> base;
-                cout << "Ingrese el exponente: "; cin >> exponente;
-                Ans = potencia(base, exponente);
+                 double base;
+                 int exponente;
+                 cout << "Ingrese la base: "; cin >> base;
+                 cout << "Ingrese el exponente: "; cin >> exponente;
+                 Ans = potencia(base, exponente);
+                 cout << "Resultado: " << Ans << endl;
+             } else if (opCientifica == 2) {
+                 int numero;
+                 cout << "Ingrese un numero entero: "; cin >> numero;
+                 Ans = factorial(numero);
+                 cout << "Resultado: " << Ans << endl;
+             } else if (opCientifica == 3) {
+                 double angulo;
+                 cout << "Ingrese el angulo en radianes: "; cin >> angulo;
+                 Ans = seno(angulo);
+                 cout << "Resultado: " << Ans << endl;
+              } else if (opCientifica == 4) {
+                  double angulo;
+                 cout << "Ingrese el angulo en radianes: "; cin >> angulo;
+                 Ans = coseno(angulo);
                 cout << "Resultado: " << Ans << endl;
-            } else if (opCientifica == 2) {
-                int numero;
-                cout << "Ingrese un numero entero: "; cin >> numero;
-                Ans = factorial(numero);
-                cout << "Resultado: " << Ans << endl;
-            } else if (opCientifica == 3) {
-                double angulo;
-                cout << "Ingrese el angulo en radianes: "; cin >> angulo;
-                Ans = seno(angulo);
-                cout << "Resultado: " << Ans << endl;
-            } else if (opCientifica == 4) {
-                double angulo;
-                cout << "Ingrese el angulo en radianes: "; cin >> angulo;
-                Ans = coseno(angulo);
-                cout << "Resultado: " << Ans << endl;
-            } else if (opCientifica == 5) {
-                double valor;
-                cout << "Ingrese el valor de x: "; cin >> valor;
-                Ans = exponencial(valor);
-                cout << "Resultado: " << Ans << endl;
-            } else if (opCientifica == 6) {
-                double valor;
-                cout << "Ingrese el valor de x (|x| < 1): "; cin >> valor;
-                Ans = logaritmo(valor);
-                cout << "Resultado: " << Ans << endl;
-            }
+             } else if (opCientifica == 5) {
+                 double valor;
+                 cout << "Ingrese el valor de x: "; cin >> valor;
+                 Ans = exponencial(valor);
+                 cout << "Resultado: " << Ans << endl;
+             } else if (opCientifica == 6) {
+                 double valor;
+                 cout << "Ingrese el valor de x (|x| < 1): "; cin >> valor;
+                 Ans = logaritmo(valor);
+                 cout << "Resultado: " << Ans << endl;
+             }
+         } catch (const exception &e) {
+             cout << "Error: " << e.what() << endl;
+         }
 
         } else if (opcionPrincipal == 3) {
             int opMatrices = 0;
@@ -163,6 +152,21 @@ int main() {
                 M1 = 0.0;
                 M2 = 0.0;
                 cout << "Memorias reiniciadas.\n";
+            }
+        } else if (opcionPrincipal == 5) {
+            cin.ignore(); 
+            cout << "\n--- EVALUAR EXPRESION ---\n";
+            cout << "Puedes usar +, -, *, /, %, ^, ! y parentesis, ademas de Ans, M1, M2.\n";
+            cout << "Ejemplo: 3 + 4 * (2 - 1) ^ 2 - 5 !\n";
+            cout << "Expresion: ";
+            string expresionTexto;
+            getline(cin, expresionTexto);
+
+            try {
+                Ans = evaluarExpresion(expresionTexto, Ans, M1, M2);
+                cout << "Resultado: " << Ans << endl;
+            } catch (const exception &e) {
+                cout << "Error: " << e.what() << endl;
             }
         }
 
