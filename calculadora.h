@@ -2,6 +2,7 @@
 #define CALCULADORA_H
 
 #include <iostream>
+#include <string>
 using namespace std;
 
 double potencia(double base, int exponente);
@@ -23,5 +24,7 @@ double** multiplicarMatrices(double** A, int fA, int cA, double** B, int fB, int
 double** transponerMatriz(double** A, int filas, int columnas);
 double calcularTraza(double** A, int n);
 double determinante(double** A, int n);
+
+double evaluarExpresion(const string &texto, double &Ans, double &M1, double &M2);
 
 #endif
