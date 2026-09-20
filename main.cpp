@@ -9,7 +9,7 @@ int main() {
 
     do {
         cout << "\n--- CALCULADORA CIENTIFICA Y MATRICIAL ---\n";
-        cout << "1. Operaciones Basicas\n";
+        cout << "1. Operaciones Basicas (Evaluador de Expresiones)\n";
         cout << "2. Modulo Cientifico\n";
         cout << "3. Modulo de Matrices\n";
         cout << "4. Gestion de Memoria\n";
@@ -125,7 +125,7 @@ int main() {
                     cout << "Matriz B:\n"; leerMatriz(B, filasB, columnasB);
                     double** R = multiplicarMatrices(A, filasA, columnasA, B, filasB, columnasB);
                     cout << "Resultado:\n"; mostrarMatriz(R, filasA, columnasB);
-                    liberarMatriz(A, filasA); liberarMatriz(B, filasB); liberarMatriz(R, filasA);
+                    liberarMatriz(A, filasA); liberarMatriz(B, filasA); liberarMatriz(R, filasA);
                 }
             } else if (opMatrices == 4) {
                 int filas, columnas;
