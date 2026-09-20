@@ -7,7 +7,7 @@ using namespace std;
 void operacionesBasicas(double& Ans);
 
 double potencia(double base, int exponente);
-int factorial(int n);
+double factorial(int n);
 double seno(double x, int n = 10);
 double coseno(double x, int n = 10);
 double exponencial(double x, int n = 10);
