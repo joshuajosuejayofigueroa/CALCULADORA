@@ -24,6 +24,7 @@ double** multiplicarMatrices(double** A, int fA, int cA, double** B, int fB, int
 double** transponerMatriz(double** A, int filas, int columnas);
 double calcularTraza(double** A, int n);
 double determinante(double** A, int n);
+void resolverGaussJordan();
 
 double evaluarExpresion(const string &texto, double &Ans, double &M1, double &M2);
 
