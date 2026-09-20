@@ -1,7 +1,47 @@
 #include "calculadora.h"
-#include <stdexcept>
-#include <cctype>
-#include <cmath> 
+
+void operacionesBasicas(double& Ans) {
+    int opcion = 0;
+    cout << "\n--- OPERACIONES BASICAS ---\n";
+    cout << "1. Suma (+)\n";
+    cout << "2. Resta (-)\n";
+    cout << "3. Multiplicacion (*)\n";
+    cout << "4. Division (/)\n";
+    cout << "5. Modulo (%)\n";
+    cout << "Ingrese opcion: ";
+    cin >> opcion;
+
+    if (opcion >= 1 && opcion <= 4) {
+        double a, b;
+        cout << "Ingrese el primer numero: "; cin >> a;
+        cout << "Ingrese el segundo numero: "; cin >> b;
+
+        if (opcion == 1) Ans = a + b;
+        else if (opcion == 2) Ans = a - b;
+        else if (opcion == 3) Ans = a * b;
+        else if (opcion == 4) {
+            if (b != 0) Ans = a / b;
+            else {
+                cout << "Error: Division por cero.\n";
+                return;
+            }
+        }
+        cout << "Resultado: " << Ans << endl;
+
+    } else if (opcion == 5) {
+        int a, b;
+        cout << "Ingrese el primer numero entero: "; cin >> a;
+        cout << "Ingrese el segundo numero entero: "; cin >> b;
+        if (b != 0) {
+            Ans = a % b;
+            cout << "Resultado: " << Ans << endl;
+        } else {
+            cout << "Error: Division por cero.\n";
+        }
+    } else {
+        cout << "Opcion no valida.\n";
+    }
+}
 
 double potencia(double base, int exponente) {
     if (exponente == 0) return 1.0;
@@ -10,9 +50,6 @@ double potencia(double base, int exponente) {
 }
 
 int factorial(int n) {
-    if (n < 0) {
-        throw runtime_error("El factorial no esta definido para numeros negativos");
-    }
     if (n <= 1) return 1;
     return n * factorial(n - 1);
 }
@@ -42,7 +79,6 @@ double logaritmo(double x, int n) {
     double termino = signo * potencia(x, n) / n;
     return termino + logaritmo(x, n - 1);
 }
-
 
 double** crearMatriz(int filas, int columnas) {
     double** matriz = new double*[filas];
@@ -155,179 +191,49 @@ double determinante(double** A, int n) {
     return det;
 }
 
+void resolverGaussJordan() {
+    int n;
+    cout << "Ingrese el numero de variables (N para matriz N x N): ";
+    cin >> n;
 
-void operacionesBasicas(double& Ans) {
-    int opcion = 0;
-    cout << "\n--- OPERACIONES BASICAS ---\n";
-    cout << "1. Suma (+)\n";
-    cout << "2. Resta (-)\n";
-    cout << "3. Multiplicacion (*)\n";
-    cout << "4. Division (/)\n";
-    cout << "5. Modulo (%)\n";
-    cout << "Ingrese opcion: ";
-    cin >> opcion;
+    double** A = crearMatriz(n, n + 1);
 
-    if (opcion >= 1 && opcion <= 4) {
-        double a, b;
-        cout << "Ingrese el primer numero: "; cin >> a;
-        cout << "Ingrese el segundo numero: "; cin >> b;
+    cout << "\nIngrese la matriz aumentada [A|b]:\n";
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            cout << "A[" << i << "][" << j << "]: ";
+            cin >> A[i][j];
+        }
+        cout << "Termino independiente b[" << i << "]: ";
+        cin >> A[i][n];
+    }
 
-        if (opcion == 1) Ans = a + b;
-        else if (opcion == 2) Ans = a - b;
-        else if (opcion == 3) Ans = a * b;
-        else if (opcion == 4) {
-            if (b != 0) Ans = a / b;
-            else {
-                cout << "Error: Division por cero.\n";
-                return;
+    for (int i = 0; i < n; i++) {
+        double pivote = A[i][i];
+        if (pivote == 0) {
+            cout << "\nEl sistema no tiene solucion unica.\n";
+            liberarMatriz(A, n);
+            return;
+        }
+
+        for (int j = 0; j <= n; j++) {
+            A[i][j] /= pivote;
+        }
+
+        for (int k = 0; k < n; k++) {
+            if (k != i) {
+                double factor = A[k][i];
+                for (int j = 0; j <= n; j++) {
+                    A[k][j] -= factor * A[i][j];
+                }
             }
         }
-        cout << "Resultado: " << Ans << endl;
-
-    } else if (opcion == 5) {
-        int a, b;
-        cout << "Ingrese el primer numero entero: "; cin >> a;
-        cout << "Ingrese el segundo numero entero: "; cin >> b;
-        if (b != 0) {
-            Ans = a % b;
-            cout << "Resultado: " << Ans << endl;
-        } else {
-            cout << "Error: Division por cero.\n";
-        }
-    } else {
-        cout << "Opcion no valida.\n";
-    }
-}
-
-static void saltarEspacios(const string &texto, size_t &posicion) {
-    while (posicion < texto.size() && isspace(static_cast<unsigned char>(texto[posicion]))) {
-        posicion++;
-    }
-}
-
-static double leerExpresion(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2);
-static double leerTermino(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2);
-static double leerFactor(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2);
-static double leerUnario(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2);
-static double leerPostfijo(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2);
-static double leerPrimario(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2);
-
-static double leerPrimario(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2) {
-    saltarEspacios(texto, posicion);
-    if (posicion >= texto.size()) {
-        throw runtime_error("La expresion termino antes de tiempo (falta un numero o parentesis)");
     }
 
-if (texto.compare(posicion, 3, "Ans") == 0) { posicion += 3; return Ans; }
-    if (texto.compare(posicion, 2, "M1") == 0)  { posicion += 2; return M1; }
-    if (texto.compare(posicion, 2, "M2") == 0)  { posicion += 2; return M2; }
-
-if (texto[posicion] == '(') {
-        posicion++;
-        double valor = leerExpresion(texto, posicion, Ans, M1, M2);
-        saltarEspacios(texto, posicion);
-        if (posicion >= texto.size() || texto[posicion] != ')') {
-            throw runtime_error("Falta cerrar un parentesis ')'");
-        }
-        posicion++;
-        return valor;
+    cout << "\nSolucion del sistema:\n";
+    for (int i = 0; i < n; i++) {
+        cout << "x" << i + 1 << " = " << A[i][n] << endl;
     }
 
- if (isdigit(static_cast<unsigned char>(texto[posicion])) || texto[posicion] == '.') {
-        size_t inicio = posicion;
-        while (posicion < texto.size() &&
-               (isdigit(static_cast<unsigned char>(texto[posicion])) || texto[posicion] == '.')) {
-            posicion++;
-        }
-        return stod(texto.substr(inicio, posicion - inicio));
-    }
-
-    throw runtime_error(string("Caracter no reconocido en la expresion: '") + texto[posicion] + "'");
-}
-
-static double leerPostfijo(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2) {
-    double valor = leerPrimario(texto, posicion, Ans, M1, M2);
-    saltarEspacios(texto, posicion);
-    while (posicion < texto.size() && texto[posicion] == '!') {
-        posicion++;
-        if (valor < 0 || floor(valor) != valor) {
-            throw runtime_error("El factorial solo se puede aplicar a enteros no negativos");
-        }
-        valor = factorial(static_cast<int>(valor)); // reutiliza TU funcion factorial (ya validada)
-        saltarEspacios(texto, posicion);
-    }
-    return valor;
-}
-
-static double leerUnario(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2) {
-    saltarEspacios(texto, posicion);
-    if (posicion < texto.size() && texto[posicion] == '-') {
-        posicion++;
-        return -leerUnario(texto, posicion, Ans, M1, M2);
-    }
-    if (posicion < texto.size() && texto[posicion] == '+') {
-        posicion++;
-        return leerUnario(texto, posicion, Ans, M1, M2);
-    }
-    return leerPostfijo(texto, posicion, Ans, M1, M2);
-}
-
-static double leerFactor(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2) {
-    double base = leerUnario(texto, posicion, Ans, M1, M2);
-    saltarEspacios(texto, posicion);
-    if (posicion < texto.size() && texto[posicion] == '^') {
-        posicion++;
-        double exponente = leerFactor(texto, posicion, Ans, M1, M2); // recursion a la derecha
-        if (floor(exponente) != exponente) {
-            throw runtime_error("Esta version de potencia solo admite exponentes enteros");
-        }
-        return potencia(base, static_cast<int>(exponente));
-    }
-    return base;
-}
-
-static double leerTermino(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2) {
-    double resultado = leerFactor(texto, posicion, Ans, M1, M2);
-    saltarEspacios(texto, posicion);
-    while (posicion < texto.size() &&
-           (texto[posicion] == '*' || texto[posicion] == '/' || texto[posicion] == '%')) {
-        char operador = texto[posicion];
-        posicion++;
-        double derecho = leerFactor(texto, posicion, Ans, M1, M2);
-        if (operador == '*') {
-            resultado *= derecho;
-        } else if (operador == '/') {
-            if (derecho == 0) throw runtime_error("No se puede dividir entre cero");
-            resultado /= derecho;
-        } else { // '%'
-            if (derecho == 0) throw runtime_error("No se puede calcular el modulo entre cero");
-            int parteEntera = static_cast<int>(resultado / derecho);
-            resultado = resultado - parteEntera * derecho;
-        }
-        saltarEspacios(texto, posicion);
-    }
-    return resultado;
-}
-
-static double leerExpresion(const string &texto, size_t &posicion, double &Ans, double &M1, double &M2) {
-    double resultado = leerTermino(texto, posicion, Ans, M1, M2);
-    saltarEspacios(texto, posicion);
-    while (posicion < texto.size() && (texto[posicion] == '+' || texto[posicion] == '-')) {
-        char operador = texto[posicion];
-        posicion++;
-        double derecho = leerTermino(texto, posicion, Ans, M1, M2);
-        resultado = (operador == '+') ? resultado + derecho : resultado - derecho;
-        saltarEspacios(texto, posicion);
-    }
-    return resultado;
-}
-
-double evaluarExpresion(const string &texto, double &Ans, double &M1, double &M2) {
-    size_t posicion = 0;
-    double resultado = leerExpresion(texto, posicion, Ans, M1, M2);
-    saltarEspacios(texto, posicion);
-    if (posicion != texto.size()) {
-        throw runtime_error("Sobraron caracteres al final (revisa los parentesis)");
-    }
-    return resultado;
+    liberarMatriz(A, n);
 }
